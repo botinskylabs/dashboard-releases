@@ -131,8 +131,13 @@ button.mini.on{background:#1f5f3a;color:#dfffe9}
 .fuelp .row button{height:44px;font-size:15px}
 .fuelp button.on{background:#1f5f3a;color:#dfffe9}
 .radiosub{position:absolute;left:5%;right:5%;top:62px;z-index:5;background:rgba(8,12,18,.82);border-radius:8px;padding:8px 10px;
-  font:13px/1.4 "B612",sans-serif;color:#e9eef5;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+  font:12px/1.35 "B612",sans-serif;color:#e9eef5;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);cursor:pointer}
 .radiosub b{color:var(--amber)}
+.harbchip{position:absolute;left:50%;transform:translateX(-50%);top:64px;z-index:4;background:rgba(8,40,80,.78);color:#fff;border:0;border-radius:14px;
+  padding:4px 10px;max-width:72%;overflow:hidden;text-overflow:ellipsis;font:700 12px "B612",sans-serif;box-shadow:inset 0 0 0 1.5px #4aa8ff;white-space:nowrap;cursor:pointer}
+.harbchip.on{background:rgba(20,90,170,.9);box-shadow:inset 0 0 0 2px #9fd3ff}
+.harbchip .ar{display:inline-block;margin-right:4px;color:#9fd3ff}
+#acSeg button.boat small{color:#8fd3ff}
 .radiosub[hidden]{display:none}
 .stew.acro{bottom:6px}.stew.acro.loop{bottom:118px}
 .extzoom{position:absolute;right:6px;top:56px;z-index:5;display:flex;flex-direction:column;gap:6px}
@@ -179,11 +184,11 @@ body.wide .navrow{flex-wrap:wrap}body.wide .route{flex:1 1 100%!important}
     <label>Von<select id="from"></select></label>
     <label>Nach<select id="to"></select></label>
     <div class="plan" id="plan"></div>
-    <label>Flugzeug</label>
+    <label>Fahrzeug – Flugzeug, Hubschrauber oder Boot</label>
     <label class="chk" id="freeRow" hidden><input type="checkbox" id="freeChk" checked> 🆓 Freier Flug – kein Ziel, einfach losfliegen</label>
     <label class="chk" id="cityRow" hidden><input type="checkbox" id="cityChk"> 🏙 Hubschrauber: Start auf einem Dach mitten in der Stadt</label>
     <label class="chk" id="harbRow" hidden><input type="checkbox" id="harbChk"> 🚤 Hubschrauber: Start am Hafen – mit dem Speedboot fahren</label>
-    <div class="seg" id="acSeg"><button data-ac="A320">A320<br><small>Kurz/Mittel</small></button><button data-ac="B789">787<br><small>Langstrecke</small></button><button data-ac="H145">🚁 H145<br><small>Zivil</small></button><button data-ac="CH47">🚁 CH-47<br><small>Militär</small></button><button data-ac="FIRE">🚒 Feuerwehr<br><small>Löscheinsatz</small></button><button data-ac="F16">F‑16<br><small>Kampfjet</small></button><button data-ac="A388">A380<br><small>Riesenjet</small></button></div>
+    <div class="seg" id="acSeg"><button data-ac="A320">A320<br><small>Kurz/Mittel</small></button><button data-ac="B789">787<br><small>Langstrecke</small></button><button data-ac="H145">🚁 H145<br><small>Zivil</small></button><button data-ac="CH47">🚁 CH-47<br><small>Militär</small></button><button data-ac="FIRE">🚒 Feuerwehr<br><small>Löscheinsatz</small></button><button data-ac="F16">F‑16<br><small>Kampfjet</small></button><button data-ac="A388">A380<br><small>Riesenjet</small></button><button class="boat" data-ac="H145" data-boat="speed">🚤 Speedboot<br><small>90 km/h</small></button><button class="boat" data-ac="H145" data-boat="race">🏁 Rennboot<br><small>140 km/h</small></button><button class="boat" data-ac="H145" data-boat="fish">🎣 Fischerboot<br><small>gemütlich</small></button></div>
     <label>Spieltempo</label>
     <div class="seg" id="tempo"><button data-f="1">Echt</button><button data-f="10" class="on">Schnell ×10</button><button data-f="50">Turbo ×50</button></div>
     <div class="plan" id="stampBox"></div>
@@ -241,6 +246,7 @@ body.wide .navrow{flex-wrap:wrap}body.wide .route{flex:1 1 100%!important}
   <button class="stew acro" id="rollBtn" hidden aria-label="Rolle">🔄</button>
   <button class="stew acro" id="dropBtn" hidden aria-label="Wasser ablassen">💧</button>
   <button class="stew boatb" id="boatBtn" hidden aria-label="Ins Boot steigen">🚤</button>
+  <button class="harbchip" id="harbChip" hidden></button>
   <button class="stew acro loop" id="troopBtn" hidden aria-label="Aussteigen">🪖</button>
   <button class="stew acro loop" id="loopBtn" hidden aria-label="Looping">➰</button>
   <div class="extzoom" id="extZoom" hidden><button id="ezIn">+</button><button id="ezOut">−</button></div>
@@ -1109,7 +1115,7 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
 
   let lastSet='';function render(){const k=S.spdT+'|'+S.altT;if(k===lastSet)return;lastSet=k;document.getElementById('spdSet').textContent=fmt(S.spdT);document.getElementById('altSet').textContent=fmt(S.altT)}
   function change(k,d){
-    if(S.mode==='boat'){if(k==='spd'&&S.boat){S.boat.spdT=clamp(S.boat.spdT+(d>0?10:-10),-15,90);S.spdT=Math.abs(S.boat.spdT);render()}return}
+    if(S.mode==='boat'){if(k==='spd'&&S.boat){S.boat.spdT=clamp(S.boat.spdT+(d>0?10:-10),-15,(S.boat.bt||{max:90}).max);S.spdT=Math.abs(S.boat.spdT);render()}return}
     if(isHeli()&&k==='alt'&&(S.mode==='fly'||S.mode==='hland')){
       if(S.mode==='hland'&&d>0){S.mode='fly';updateBtn()}
       const g=S.gnd||0,agl=S.altT-g,stp=agl>300?50:(agl>100?25:(agl>30?10:5));
@@ -1367,7 +1373,7 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
       const Lh=AC.light;tgt(A.chopG.gain,S.mode==='crash'?0:(Lh?0.3+0.5*T:0.45+0.55*T)*rpm);tgt(A.lfo.frequency,Lh?2+9.5*rpm:1.5+6*rpm,1.5);tgt(A.chopF.frequency,Lh?220+300*T:160+200*T);
       tgt(A.rumG.gain,(Lh?0.1*T+0.02:0.3*T+0.06)*rpm);tgt(A.rumF.frequency,Lh?90+200*T:70+90*T);tgt(A.fanG.gain,0.02*T);tgt(A.whG.gain,0.0035*rpm);tgt(A.wh1.frequency,5400,1);tgt(A.wh2.frequency,5450,1);tgt(A.bpG.gain,0)}
       else tgt(A.chopG.gain,0)}
-    if(S.mode==='boat'&&A.chopG){const v=Math.min(1,Math.abs(S.boat?S.boat.spd:0)/90),T2=0.25+0.75*Math.abs((S.boat&&S.boat.spdT)||0)/90;   // outboard engine + water rushing
+    if(S.mode==='boat'&&A.chopG){const bm=(S.boat&&S.boat.bt||{max:90}).max,v=Math.min(1,Math.abs(S.boat?S.boat.spd:0)/bm),T2=0.25+0.75*Math.abs((S.boat&&S.boat.spdT)||0)/bm;   // outboard engine + water rushing
       tgt(A.chopG.gain,0);tgt(A.rumG.gain,0.12+0.4*T2);tgt(A.rumF.frequency,70+260*T2);tgt(A.fanG.gain,0.03+0.1*T2);tgt(A.fanF.frequency,300+800*T2);
       tgt(A.whG.gain,0.002+0.006*T2);tgt(A.wh1.frequency,900+1400*T2,0.4);tgt(A.wh2.frequency,920+1400*T2,0.4);tgt(A.bpG.gain,0.02*T2);tgt(A.bp.frequency,60+140*T2,0.3);
       tgt(A.windG.gain,0.04+0.22*v);tgt(A.windF.frequency,500+500*v);tgt(A.rollG.gain,0);tgt(A.gearG.gain,0)}
@@ -1714,9 +1720,11 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
     TFsel=+b.dataset.f;document.querySelectorAll('#tempo button').forEach(x=>x.classList.toggle('on',x===b));plan()}));
   function curLatLon(){setProj(S.from);return unproj(S.px,S.py)}
   function midFlight(){return S.from!=null&&S.mode!=='parked'}
-  const freeOn=()=>isHeli()&&SAVE.freeFlight!==false&&!midFlight();
+  const freeOn=()=>isHeli()&&(SAVE.freeFlight!==false||!!SAVE.boatStart)&&!midFlight();
   function plan(){
     if(freeOn()){const el=document.getElementById('plan'),f=AP[+fromSel.value];document.getElementById('goBtn').disabled=false;
+      if(SAVE.boatStart){const bt={speed:'🚤 Speedboot',race:'🏁 Rennboot',fish:'🎣 Fischerboot'}[SAVE.boatStart];
+        el.innerHTML=`<b>${bt}</b> – Start im nächsten Hafen bei ${aptName(+fromSel.value)}<br>Bojen-Parcours, Schatzkisten, Schwimmer retten. In einem anderen Hafen anlegen und mit dem Hubschrauber weiterfliegen.`+(['FAO','LIS','OPO'].includes(f[1])||1?'<br><small>Tipp: ein Flughafen an der Küste, z.&nbsp;B. Faro, Lissabon oder Porto.</small>':'');return}
       el.innerHTML=`🚁 <b>Freier Flug</b> ab ${aptName(+fromSel.value)}<br>Fliegt, wohin ihr wollt – landet auf Dächern, Feldern oder Flughäfen.<br>Im Tank: <b>${(S.fuel/1000).toFixed(1).replace('.',',')} t</b> – reicht <b>${fmt(rangeKm(S.fuel))} km</b>`+(AC.fire?'<br>🚒 Die Leitstelle meldet sich mit Einsätzen.':'');return}
     const to=AP[+toSel.value];
     let d;
@@ -1745,15 +1753,17 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
     document.getElementById('stampBox').innerHTML=`<details><summary>Stempel gesammelt: <b>${got} / ${AP.length}</b></summary><div class="stamps">${AP.map(a=>`<span class="${SAVE.visited[a[1]]?'got':''}" title="${a[0]}">${a[1]}</span>`).join('')}</div></details>`;
   }
   const acBtns=document.querySelectorAll('#acSeg button');
-  function acUI(){acBtns.forEach(b=>{b.classList.toggle('on',b.dataset.ac===AC.key);b.disabled=midFlight()});jetUI()}
-  function jetUI(){const j=!!AC.jet,hh=!!AC.heli;{const cr=document.getElementById('cityRow');if(cr){cr.hidden=!hh;document.getElementById('cityChk').checked=!!SAVE.cityStart;const hr=document.getElementById('harbRow');if(hr){hr.hidden=!hh;document.getElementById('harbChk').checked=!!SAVE.harbStart}}
-     const fr=document.getElementById('freeRow');if(fr){fr.hidden=!hh;document.getElementById('freeChk').checked=SAVE.freeFlight!==false;
-       const tl=toSel.closest('label');if(tl)tl.style.display=hh&&SAVE.freeFlight!==false?'none':''}}
+  function acUI(){acBtns.forEach(b=>{b.classList.toggle('on',b.dataset.boat?SAVE.boatStart===b.dataset.boat:(b.dataset.ac===AC.key&&!SAVE.boatStart));b.disabled=midFlight()});jetUI()}
+  function jetUI(){const j=!!AC.jet,hh=!!AC.heli;{const cr=document.getElementById('cityRow');if(cr){cr.hidden=!hh||!!SAVE.boatStart;document.getElementById('cityChk').checked=!!SAVE.cityStart;const hr=document.getElementById('harbRow');if(hr){hr.hidden=!hh||!!SAVE.boatStart;document.getElementById('harbChk').checked=!!SAVE.harbStart}}
+     const fr=document.getElementById('freeRow');if(fr){fr.hidden=!hh||!!SAVE.boatStart;document.getElementById('freeChk').checked=SAVE.freeFlight!==false;
+       const tl=toSel.closest('label');if(tl)tl.style.display=hh&&(SAVE.freeFlight!==false||SAVE.boatStart)?'none':''}}
     {const db=document.getElementById('dropBtn');if(db)db.hidden=!AC.fire;const tb=document.getElementById('troopBtn');if(tb){tb.hidden=!hh;tb.textContent=AC.fire?'👨‍🚒':(AC.light?'🧑‍⚕️':'🪖')}}document.getElementById('stewBtn').hidden=j||hh;document.getElementById('rollBtn').hidden=!j;document.getElementById('loopBtn').hidden=!j;
     document.querySelectorAll('#camMenu button[data-view="biz"],#camMenu button[data-view="eco"]').forEach(b=>b.hidden=j||hh);
     const dv=document.querySelector('#camMenu button[data-view="deck"]');if(dv)dv.textContent=j?'🎛 Cockpit innen (F-16 Instrumente)':(hh?(AC.light?'🎛 Cockpit innen (H145)':'🎛 Cockpit innen (Chinook)'):'🎛 Cockpit innen (Instrumente)')}
-  acBtns.forEach(b=>b.addEventListener('click',()=>{if(midFlight()||b.dataset.ac===AC.key)return;
-    SAVE.fuelBy[AC.key]=Math.round(S.fuel);AC=ACS[b.dataset.ac];S.fuel=clamp(+SAVE.fuelBy[AC.key]||0,0,AC.cap);store();acUI();plan()}));
+  acBtns.forEach(b=>b.addEventListener('click',()=>{if(midFlight())return;const bt=b.dataset.boat||null;
+    if(b.dataset.ac===AC.key&&bt===(SAVE.boatStart||null))return;SAVE.boatStart=bt;
+    if(b.dataset.ac!==AC.key){SAVE.fuelBy[AC.key]=Math.round(S.fuel);AC=ACS[b.dataset.ac];S.fuel=clamp(+SAVE.fuelBy[AC.key]||0,0,AC.cap)}
+    if(bt&&S.fuel<AC.cap*0.5)S.fuel=AC.cap;store();acUI();plan()}));
   fromSel.addEventListener('change',plan);toSel.addEventListener('change',plan);
   function openMenu(title){
     const mf=midFlight();
@@ -1819,7 +1829,7 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
     menu.hidden=true;updateBtn();updateAP();render();
     const stops=legs.length>2?` mit Tankstopp in ${legs.slice(1,-1).map(i=>AP[i][0]).join(' und ')}`:'';
     announce(`Guten Tag, meine Damen und Herren. Hier spricht Ihr Kapitän. Willkommen an Bord unseres ${AC.name} von ${AP[from][0]} nach ${AP[fin][0]}${stops}. Die erste Etappe nach ${AP[leg][0]} ist ${Math.round(g.d)} Kilometer lang, die Flugzeit etwa ${sayHM(g.d/820+0.3)}. Bitte schnallen Sie sich an.`);
-    S.free=free;S.water=AC.fire?1:0;S.fire=null;S.padOn=null;S.gnd=0;if(AC.heli&&SAVE.harbStart)setTimeout(harbStart,60);else if(AC.heli&&SAVE.cityStart)setTimeout(cityStart,60);
+    S.free=free;S.water=AC.fire?1:0;S.fire=null;S.padOn=null;S.gnd=0;S.harbTgt=null;if(AC.heli&&SAVE.boatStart)setTimeout(()=>harbStart(SAVE.boatStart),60);else if(AC.heli&&SAVE.harbStart)setTimeout(()=>harbStart(),60);else if(AC.heli&&SAVE.cityStart)setTimeout(cityStart,60);
     if(S.fuel<legNeed(g.d))setTimeout(()=>say('Bitte vor dem Start noch tanken. Dafür auf die Tankanzeige tippen.','de-DE'),11000);
   });
   const apBtn=document.getElementById('apBtn'),sndBtn=document.getElementById('sndBtn');
@@ -1984,7 +1994,8 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
   const radioBtn=document.getElementById('radioBtn'),radioMenu=document.getElementById('radioMenu'),radioSub=document.getElementById('radioSub');
   let radioBusy=false,subT=null;
   function squelch(){burst({filter:'bandpass',ff:1800,q:1.2,dur:0.18,vol:0.18});burst({freq:1100,dur:0.05,vol:0.04,type:'square'})}
-  function showSub(html){radioSub.innerHTML=html;radioSub.hidden=false;clearTimeout(subT);subT=setTimeout(()=>{radioSub.hidden=true},12000)}
+  function showSub(html){radioSub.innerHTML=html;radioSub.hidden=false;clearTimeout(subT);subT=setTimeout(()=>{radioSub.hidden=true},7000)}
+  radioSub.addEventListener('click',()=>{radioSub.hidden=true});
   function speakAs(text,who,done){speakRole(text,who==='tower'?'tower':'pilot',false,done)}
   // pilot calls, tower answers
   function radio(pilot,tower,after){
@@ -2767,28 +2778,27 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
     if(S.mode==='hland'&&bd<25&&S.spd<15){const k=Math.min(1,dt*0.9),mx=(best.x-S.px)*k,my=(best.y-S.py)*k;S.px+=mx;S.py+=my;S.camX+=mx*1000;S.camZ+=my*1000}
   }
   function padHUD(ctx,W,H){
-    const g=S.padNear;if(!g||!isHeli()||(AC.fire&&S.overW&&S.water<1))return;const w=Math.min(250,W*0.7),bh=100,x=W/2-w/2,y=H-bh-98,ok=g.inZone,slow=S.spd>25;
+    const g=S.padNear;if(!g||!isHeli()||(AC.fire&&S.overW&&S.water<1)||g.d>350)return;const w=Math.min(206,W*0.6),bh=58,x=W/2-w/2,y=H-bh-92,ok=g.inZone,slow=S.spd>25;
     ctx.fillStyle=ok?'rgba(12,70,30,.85)':'rgba(8,12,18,.78)';rr(ctx,x,y,w,bh,8);ctx.fill();
     if(ok){ctx.strokeStyle=`rgba(80,255,130,${0.6+0.4*Math.sin(S.t*6)})`;ctx.lineWidth=3;rr(ctx,x,y,w,bh,8);ctx.stroke()}
     // mini top-down view: H in the middle of a target, our helicopter as a dot (nose up)
-    const cx=x+48,cy=y+bh/2,R=40,sc=R/Math.max(30,Math.min(800,g.d*1.3));
+    const cx=x+30,cy=y+bh/2,R=23,sc=R/Math.max(30,Math.min(800,g.d*1.3));
     ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1;[R,R*0.5].forEach(r=>{ctx.beginPath();ctx.arc(cx,cy,r,0,7);ctx.stroke()});
     const px=cx+g.rgt*sc,py=cy-g.fwd*sc;
-    ctx.fillStyle=ok?'#3be36b':'#e33';ctx.beginPath();ctx.arc(clamp(px,cx-R,cx+R),clamp(py,cy-R,cy+R),9,0,7);ctx.fill();
+    ctx.fillStyle=ok?'#3be36b':'#e33';ctx.beginPath();ctx.arc(clamp(px,cx-R,cx+R),clamp(py,cy-R,cy+R),7,0,7);ctx.fill();
     ctx.fillStyle='#fff';ctx.font='700 11px B612, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('H',clamp(px,cx-R,cx+R),clamp(py,cy-R,cy+R)+0.5);
     ctx.fillStyle='#ffd21a';ctx.beginPath();ctx.moveTo(cx,cy-7);ctx.lineTo(cx+5,cy+5);ctx.lineTo(cx-5,cy+5);ctx.closePath();ctx.fill();
     // text
-    const tx=x+100;ctx.textAlign='left';ctx.textBaseline='top';ctx.font='700 12px B612, sans-serif';
-    ctx.fillStyle='#fff';ctx.fillText(g.p.icon+' '+g.p.name.split(' ')[0],tx,y+8);
-    if(ok){ctx.fillStyle='#3be36b';ctx.font='700 14px B612, sans-serif';ctx.fillText('✅ IN DER ZONE',tx,y+28);
-      ctx.font='700 12px B612, sans-serif';ctx.fillStyle=slow?'#ffb020':'#fff';ctx.fillText(slow?'Erst abbremsen (−)':'Jetzt runter ↓',tx,y+50)}
+    const tx=x+62;ctx.textAlign='left';ctx.textBaseline='top';ctx.font='700 11px B612, sans-serif';
+    if(ok){ctx.fillStyle='#3be36b';ctx.fillText('✅ IN DER ZONE',tx,y+7);
+      ctx.fillStyle=slow?'#ffb020':'#fff';ctx.fillText(slow?'Erst abbremsen (−)':'Jetzt runter ↓',tx,y+22)}
     else{const f=Math.round(g.fwd),r=Math.round(g.rgt);ctx.fillStyle='#ffd21a';
-      ctx.fillText((Math.abs(f)<6?'':f>0?`↑ ${fmt(f)} m vor`:`↓ ${fmt(-f)} m zurück`),tx,y+28);
-      ctx.fillText((Math.abs(r)<6?'':r>0?`→ ${fmt(r)} m rechts`:`← ${fmt(-r)} m links`),tx,y+46)}
-    ctx.fillStyle='#8fd3ff';ctx.font='12px B612, sans-serif';ctx.fillText(`Höhe über Dach: ${fmt(Math.max(0,g.hAbove))} m`,tx,y+bh-22)}
+      ctx.fillText((Math.abs(f)<6?'':f>0?`↑ ${fmt(f)} m vor`:`↓ ${fmt(-f)} m zurück`),tx,y+7);
+      ctx.fillText((Math.abs(r)<6?'':r>0?`→ ${fmt(r)} m rechts`:`← ${fmt(-r)} m links`),tx,y+22)}
+    ctx.fillStyle='#8fd3ff';ctx.font='11px B612, sans-serif';ctx.fillText(`Höhe: ${fmt(Math.max(0,g.hAbove))} m`,tx,y+bh-17)}
   function padLanding(p){
     S.land=null;S.offApt=true;
-    if(p.k==='harbor'){SND.ding();copilot(`Gelandet im ${p.name}! Unten am Steg wartet ein Speedboot – mit dem Boot-Knopf steigt ihr um.`,'⚓ Hafen – 🚤 ins Boot steigen');return}
+    if(p.k==='harbor'){S.harbTgt=null;SND.ding();copilot(`Gelandet im ${p.name}! Unten am Steg wartet ein Speedboot – mit dem Boot-Knopf steigt ihr um.`,'⚓ Hafen – 🚤 ins Boot steigen');return}
     const k=p.k;let msg=`Gelandet auf dem Dach vom ${p.name}! ${p.icon}`;
     if(k==='hosp')msg+=' Der Patient wird gerade ins Krankenhaus gebracht.';
     if(k==='pol')msg+=' Die Polizei sagt danke für die Unterstützung.';
@@ -2890,13 +2900,14 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
   document.getElementById('harbChk').addEventListener('change',e=>{SAVE.harbStart=e.target.checked;if(e.target.checked){SAVE.cityStart=false;document.getElementById('cityChk').checked=false}store()});
   document.getElementById('cityChk').addEventListener('change',e=>{if(e.target.checked){SAVE.harbStart=false;document.getElementById('harbChk').checked=false;store()}});
   // start parked on the nearest harbor pad, boat waiting
-  function harbStart(){
+  function harbStart(boatType){
     updatePads();for(let i=0;i<8;i++)updateHarbors();
     const L=[...HARB.values()].filter(Boolean).map(h=>({h,d:Math.hypot(h.x-S.px,h.y-S.py)})).sort((a,b)=>a.d-b.d);
     if(!L.length){showSub('<b>Co-Pilot:</b> Hier gibt es keinen Hafen in der Nähe – wähle einen Flughafen an der Küste, z.&nbsp;B. <b>Faro</b>, <b>Lissabon</b> oder <b>Porto</b>.');return}
     const p=L[0].h;
     S.camX+=(p.x-S.px)*1000;S.camZ+=(p.y-S.py)*1000;S.px=p.x;S.py=p.y;S.gnd=p.h;S.alt=p.h;S.padOn=p;S.offApt=true;S.mode='parked';S.atStand=false;updateBtn();
     VIEW='ext';ORB.yaw=2.4;ORB.el=0.35;ORB.zoom=1.6;
+    if(boatType){enterBoat(boatType);return}
     showSub(`<b>Co-Pilot:</b> Wir stehen am <b>${p.name}</b>. Unten rechts der blaue <b>🚤-Knopf</b>: ins Speedboot steigen! Weitere Häfen sind auf der Karte mit <b>⚓</b> markiert.`)}
   document.getElementById('dropBtn').addEventListener('click',()=>{initAudio();
     if(!AC.fire)return;
@@ -3092,20 +3103,42 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
     return {buoys:pts,chests,swimmer:rnd(0.8,2.0)}}
   function boatUI(){const b=document.getElementById('boatBtn');if(!b)return;
     {const tb=document.getElementById('troopBtn');if(tb)tb.hidden=!isHeli()||S.mode==='boat'}
-    b.hidden=!(isHeli()&&S.mode==='parked'&&S.padOn&&S.padOn.k==='harbor')}
-  document.getElementById('boatBtn').addEventListener('click',()=>{initAudio();
-    const p=S.padOn;if(!p||p.k!=='harbor'||S.mode!=='parked')return;
+    b.hidden=!(isHeli()&&S.mode==='parked'&&S.padOn&&S.padOn.k==='harbor');harbChipUI()}
+  // small chip: nearest harbor (or the chosen one) with direction and distance; tap = autopilot flies there
+  const harbChip=document.getElementById('harbChip');let chipT=0;
+  function harbChipUI(){
+    const show=isHeli()&&!AC.fire&&(S.mode==='fly'||S.mode==='hland'||(S.mode==='parked'&&!(S.padOn&&S.padOn.k==='harbor')))&&VIEW!=='troop'&&!(S.padNear&&S.padNear.d<350);
+    if(!show){harbChip.hidden=true;return}
+    if(S.t-chipT<0.25&&!harbChip.hidden)return;chipT=S.t;
+    let h=S.harbTgt,d;if(h)d=Math.hypot(h.x-S.px,h.y-S.py);else{let bd=1e9;HARB.forEach(q=>{if(!q)return;const dd=Math.hypot(q.x-S.px,q.y-S.py);if(dd<bd){bd=dd;h=q}});d=bd}
+    if(!h||d>60){harbChip.hidden=true;return}
+    const rel=(Math.atan2(h.x-S.px,h.y-S.py)-S.psi)*180/Math.PI,deg=((rel%360)+540)%360-180;
+    const dist=d<1?Math.round(d*1000)+' m':d.toFixed(1).replace('.',',')+' km';
+    harbChip.innerHTML=`<span class="ar" style="transform:rotate(${Math.round(deg)}deg)">⬆</span>⚓ ${h.name} · ${dist}${S.harbTgt?'':' · antippen'}`;
+    harbChip.classList.toggle('on',!!S.harbTgt);
+    if(S.harbTgt&&S.ap&&S.mode==='fly'){if(d<0.5)S.spdT=Math.min(S.spdT,25);else if(d<1.5)S.spdT=Math.min(S.spdT,70);if(d<1.5&&S.altT>80)S.altT=80}harbChip.dataset.k=h.name;harbChip._h=h;harbChip.hidden=false}
+  harbChip.addEventListener('click',()=>{initAudio();const h=harbChip._h;if(!h)return;
+    if(S.harbTgt===h){S.harbTgt=null;harbChip.classList.remove('on');return}
+    S.harbTgt=h;S.ap=true;updateAP();SND.ding();chipT=-9;
+    if(S.mode==='fly'){S.spdT=Math.max(S.spdT,Math.min(AC.cruise||200,220));if(S.altT<120)S.altT=150}
+    showSub(`<b>Co-Pilot:</b> Kurs auf <b>${h.name}</b> – der Autopilot fliegt hin. Dort landen und ins Boot steigen.`)});
+  const BOATS={speed:{name:'Speedboot',icon:'🚤',max:90,acc:16,turn:1.1,s:1,hull:[248,248,246],stripe:[200,30,30]},
+    race:{name:'Rennboot',icon:'🏁',max:140,acc:30,turn:1.25,s:1.1,hull:[225,35,30],stripe:[255,205,30]},
+    fish:{name:'Fischerboot',icon:'🎣',max:40,acc:7,turn:0.8,s:1.45,hull:[40,95,160],stripe:[245,245,240]}};
+  document.getElementById('boatBtn').addEventListener('click',()=>{initAudio();enterBoat(SAVE.lastBoat||'speed')});
+  function enterBoat(type){
+    const p=S.padOn;if(!p||p.k!=='harbor'||S.mode!=='parked')return;const BT=BOATS[type]||BOATS.speed;SAVE.lastBoat=type in BOATS?type:'speed';store();
     S.heliPark={camX:S.camX,camZ:S.camZ,psi:S.psi,alt:S.alt,pad:p,save:{camX:S.camX,camZ:S.camZ,px:S.px,py:S.py,psi:S.psi,alt:S.alt,gnd:S.gnd}};
     const dx=p.dock[0]-S.px,dy=p.dock[1]-S.py;S.camX+=dx*1000;S.camZ+=dy*1000;S.px=p.dock[0];S.py=p.dock[1];
     const C=makeCourse(p);
-    S.boat={spd:0,spdT:0,t:0,home:p,score:0,next:0,tStart:null,done:false,roll:0,trail:[],shoreT:-9,navTo:null,...C};
+    S.boat={spd:0,spdT:0,t:0,home:p,score:0,next:0,tStart:null,done:false,roll:0,trail:[],shoreT:-9,navTo:null,bt:BT,...C};S.harbTgt=null;
     S.mode='boat';S.psi=p.dir;S.alt=0;S.altT=0;S.spd=0;S.spdT=0;S.gnd=0;S.padOn=null;S.turn=0;ORB.zoom=1;VIEW='boat';updateBtn();
     burst({brown:true,filter:'lowpass',ff:400,dur:0.8,vol:0.4});
-    copilot('Alle ins Boot! Fahrt durch die orange Bojen-Strecke, sammelt Schatzkisten und rettet den Schwimmer. Mit Plus Gas geben, links und rechts lenken.','🚤 Speedboot – los geht’s!')});
+    copilot(`Alle ins ${BT.name}! Fahrt durch die orange Bojen-Strecke, sammelt Schatzkisten und rettet den Schwimmer. Mit Plus Gas geben, links und rechts lenken.`,`${BT.icon} ${BT.name} – los geht’s!`)}
   function boatStep(dt){
     const B=S.boat;if(!B){S.mode='parked';return}B.t+=dt;
-    B.spd+=clamp(B.spdT-B.spd,-45*dt,B.spdT>B.spd?16*dt:-45*dt);
-    const dir=B.spd<0?-1:1,tr=1.1*Math.min(1,Math.abs(B.spd)/12)*dir;
+    const BT=B.bt||BOATS.speed;B.spd+=clamp(B.spdT-B.spd,-45*dt,B.spdT>B.spd?BT.acc*dt:-45*dt);
+    const dir=B.spd<0?-1:1,tr=BT.turn*Math.min(1,Math.abs(B.spd)/12)*dir;
     S.psi+=S.turn*tr*dt;B.roll+=((-S.turn*Math.min(1,Math.abs(B.spd)/40))*0.22-B.roll)*Math.min(1,dt*3);
     const K=2.5,v=B.spd/3.6*K,mx=Math.sin(S.psi)*v*dt,mz=Math.cos(S.psi)*v*dt;
     // stay on the water: look a few metres ahead
@@ -3113,7 +3146,7 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
     if(Math.abs(B.spd)>0.5&&!isWater(ax,ay)){B.spd=-B.spd*0.25;B.spdT=0;burst({brown:true,filter:'lowpass',ff:250,dur:0.4,vol:0.6});
       if(B.t-B.shoreT>4){B.shoreT=B.t;B.score=Math.max(0,B.score-25);copilot('Achtung, Ufer! Zurück aufs offene Wasser.','Ufer! −25 Punkte')}}
     else{S.camX+=mx;S.camZ+=mz;S.px+=mx/1000;S.py+=mz/1000}
-    S.spd=Math.abs(B.spd);S.spdT=Math.abs(B.spdT);S.alt=0;S.vs=0;S.thr=0.2+0.8*Math.abs(B.spd)/90;
+    S.spd=Math.abs(B.spd);S.spdT=Math.abs(B.spdT);S.alt=0;S.vs=0;S.thr=0.2+0.8*Math.abs(B.spd)/BT.max;
     if((B.t*7|0)!==(B.tr7|0)){B.tr7=B.t*7;B.trail.unshift([S.camX,S.camZ,Math.abs(B.spd)]);if(B.trail.length>26)B.trail.pop()}
     const d=(q)=>Math.hypot(q[0]-S.px,q[1]-S.py)*1000;
     // buoys in order
@@ -3151,7 +3184,7 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
     const u0=[fw[1]*r0[2]-fw[2]*r0[1],fw[2]*r0[0]-fw[0]*r0[2],fw[0]*r0[1]-fw[1]*r0[0]],cb=Math.cos(roll),sb=Math.sin(roll);
     return {fw,rr:r0.map((v,i)=>v*cb-u0[i]*sb),uu:u0.map((v,i)=>v*cb+r0[i]*sb)}}
   // speedboat: white hull, red stripe, teak deck, windshield, outboard motor; s = size factor
-  function drawBoatShape(ctx,W,H,x,y,z,psi,pitch,roll,s,hullC,driver){
+  function drawBoatShape(ctx,W,H,x,y,z,psi,pitch,roll,s,hullC,driver,stripeC){
     const F=frame3(psi,pitch,roll),P=(f,r,u)=>proj3(x+(F.fw[0]*f+F.rr[0]*r+F.uu[0]*u)*s,y+(F.fw[1]*f+F.rr[1]*r+F.uu[1]*u)*s,z+(F.fw[2]*f+F.rr[2]*r+F.uu[2]*u)*s,W,H);
     const c0=P(0,0,0);if(!c0||c0[3]>6000)return;const night=TOD_CUR==='night',dim=night?0.45:1;
     const col=(c,k)=>`rgb(${Math.round(c[0]*dim*(k||1))},${Math.round(c[1]*dim*(k||1))},${Math.round(c[2]*dim*(k||1))})`;
@@ -3159,7 +3192,7 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
     const deck=[[4.3,0,0.95],[2.6,1.25,0.95],[-3.6,1.3,0.95],[-3.6,-1.3,0.95],[2.6,-1.25,0.95]],keel=[[3.7,0,0],[2.2,0.85,0],[-3.6,1.05,0.1],[-3.6,-1.05,0.1],[2.2,-0.85,0]];
     const near=sd=>{const a=P(0,sd*2,0.5);return a&&c0&&a[3]<c0[3]};
     const side=sd=>{poly([deck[0],deck[sd>0?1:4],deck[sd>0?2:3],keel[sd>0?2:3],keel[sd>0?1:4],keel[0]],col(hullC,sd>0?1:0.82));
-      poly([[deck[0][0],0,0.9],[2.6,1.25*sd,0.9],[-3.6,1.3*sd,0.9],[-3.6,1.3*sd,0.72],[2.6,1.24*sd,0.72],[4.1,0,0.72]],col([200,30,30]))};
+      poly([[deck[0][0],0,0.9],[2.6,1.25*sd,0.9],[-3.6,1.3*sd,0.9],[-3.6,1.3*sd,0.72],[2.6,1.24*sd,0.72],[4.1,0,0.72]],col(stripeC||[200,30,30]))};
     if(!near(1))side(1);if(!near(-1))side(-1);
     poly([[-3.6,1.3,0.1],[-3.6,-1.3,0.1],[-3.6,-1.3,0.95],[-3.6,1.3,0.95]],col(hullC,0.75));      // transom
     poly(deck,col([196,150,96]));                                                                 // teak deck
@@ -3178,7 +3211,7 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
       const q=[proj3(a[0]+nx*w,0.05,a[1]+nz*w,W,H),proj3(a[0]-nx*w,0.05,a[1]-nz*w,W,H),proj3(b[0]-nx*(w+1.4),0.05,b[1]-nz*(w+1.4),W,H),proj3(b[0]+nx*(w+1.4),0.05,b[1]+nz*(w+1.4),W,H)];
       if(q.some(v=>!v||v[3]<14))continue;ctx.fillStyle=`rgba(240,248,255,${0.5*(1-i/B.trail.length)*Math.min(1,b[2]/40)})`;ctx.beginPath();q.forEach((v,k)=>k?ctx.lineTo(v[0],v[1]):ctx.moveTo(v[0],v[1]));ctx.fill()}
     ctx.restore();
-    drawBoatShape(ctx,W,H,S.camX,0.1+bob,S.camZ,S.psi,pitch,B.roll,1,[248,248,246],true);
+    const BT=B.bt||BOATS.speed;drawBoatShape(ctx,W,H,S.camX,0.1+bob,S.camZ,S.psi,pitch,B.roll,BT.s,BT.hull,true,BT.stripe);
     // spray at the bow when fast
     if(sp>30){const F=frame3(S.psi,0,0);for(let i=0;i<14;i++){const side=i%2?1:-1,ph=(S.t*3+i*0.37)%1,f=3.2-ph*2.5,r=side*(1.3+ph*2.2),u=0.6+Math.sin(ph*Math.PI)*1.2;
       const q=proj3(S.camX+F.fw[0]*f+F.rr[0]*r,0.1+u,S.camZ+F.fw[2]*f+F.rr[2]*r,W,H);if(q){ctx.fillStyle=`rgba(245,250,255,${0.6*(1-ph)*Math.min(1,(sp-30)/30)})`;ctx.beginPath();ctx.arc(q[0],q[1],Math.max(1,q[2]*0.35),0,7);ctx.fill()}}}}
@@ -3219,7 +3252,7 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
   }
   function boatHUD(ctx,W,H){const B=S.boat;if(!B)return;
     ctx.fillStyle='rgba(8,12,18,.7)';rr(ctx,8,8,236,64,8);ctx.fill();ctx.font='700 13px B612, sans-serif';ctx.textAlign='left';ctx.textBaseline='top';
-    ctx.fillStyle='#fff';ctx.fillText(`🚤 Speedboot · ${Math.round(Math.abs(B.spd))} km/h${B.spd<-0.5?' ↩':''}`,16,13);
+    ctx.fillStyle='#fff';ctx.fillText(`${(B.bt||BOATS.speed).icon} ${(B.bt||BOATS.speed).name} · ${Math.round(Math.abs(B.spd))} km/h${B.spd<-0.5?' ↩':''}`,16,13);
     const secs=B.tStart!=null?(B.done?B.doneT||(B.doneT=B.t-B.tStart):B.t-B.tStart):0;
     ctx.fillStyle='#ffb020';ctx.fillText(`Bojen ${B.next}/${B.buoys.length} · ⏱ ${fmtMS(secs)}`,16,32);
     ctx.fillStyle='#3be36b';ctx.fillText(`⭐ ${B.score} Punkte`+(B.chests.length?` · 📦 ${B.chests.length}`:'')+(B.swimmer?' · 🆘 1':''),16,51);
@@ -4120,6 +4153,7 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
     const brg=Math.atan2(S.dx-S.px,S.dy-S.py);
     if(!cmd&&lcmd!=null)cmd=lcmd;
     else if(!cmd&&S.ap&&S.mode==='fly'&&isHeli()&&S.waterTgt&&S.water<0.05&&!S.overW){const b3=Math.atan2(S.waterTgt.x-S.px,S.waterTgt.y-S.py);cmd=clamp((((b3-S.psi+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)*1.5,-1,1)}
+    else if(!cmd&&S.ap&&S.mode==='fly'&&isHeli()&&S.harbTgt&&Math.hypot(S.harbTgt.x-S.px,S.harbTgt.y-S.py)>0.25){const b3=Math.atan2(S.harbTgt.x-S.px,S.harbTgt.y-S.py);cmd=clamp((((b3-S.psi+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)*1.5,-1,1)}
     else if(!cmd&&S.ap&&S.mode==='fly'&&isHeli()&&S.fire){const b3=Math.atan2(S.fire.x-S.px,S.fire.y-S.py);cmd=clamp((((b3-S.psi+Math.PI)%(2*Math.PI)+2*Math.PI)%(2*Math.PI)-Math.PI)*1.5,-1,1)}
     else if(!cmd&&S.ap&&S.mode==='fly'&&(S.pick!=null||(S.to!=null&&S.rem>1&&!S.free))){
       let b2=brg;if(S.pick!=null&&PA[S.pick])b2=Math.atan2(PA[S.pick][0]-S.px,PA[S.pick][1]-S.py);
