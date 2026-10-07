@@ -182,6 +182,7 @@ body.wide .navrow{flex-wrap:wrap}body.wide .route{flex:1 1 100%!important}
     <label>Flugzeug</label>
     <label class="chk" id="freeRow" hidden><input type="checkbox" id="freeChk" checked> 🆓 Freier Flug – kein Ziel, einfach losfliegen</label>
     <label class="chk" id="cityRow" hidden><input type="checkbox" id="cityChk"> 🏙 Hubschrauber: Start auf einem Dach mitten in der Stadt</label>
+    <label class="chk" id="harbRow" hidden><input type="checkbox" id="harbChk"> 🚤 Hubschrauber: Start am Hafen – mit dem Speedboot fahren</label>
     <div class="seg" id="acSeg"><button data-ac="A320">A320<br><small>Kurz/Mittel</small></button><button data-ac="B789">787<br><small>Langstrecke</small></button><button data-ac="H145">🚁 H145<br><small>Zivil</small></button><button data-ac="CH47">🚁 CH-47<br><small>Militär</small></button><button data-ac="FIRE">🚒 Feuerwehr<br><small>Löscheinsatz</small></button><button data-ac="F16">F‑16<br><small>Kampfjet</small></button><button data-ac="A388">A380<br><small>Riesenjet</small></button></div>
     <label>Spieltempo</label>
     <div class="seg" id="tempo"><button data-f="1">Echt</button><button data-f="10" class="on">Schnell ×10</button><button data-f="50">Turbo ×50</button></div>
@@ -1745,7 +1746,7 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
   }
   const acBtns=document.querySelectorAll('#acSeg button');
   function acUI(){acBtns.forEach(b=>{b.classList.toggle('on',b.dataset.ac===AC.key);b.disabled=midFlight()});jetUI()}
-  function jetUI(){const j=!!AC.jet,hh=!!AC.heli;{const cr=document.getElementById('cityRow');if(cr){cr.hidden=!hh;document.getElementById('cityChk').checked=!!SAVE.cityStart}
+  function jetUI(){const j=!!AC.jet,hh=!!AC.heli;{const cr=document.getElementById('cityRow');if(cr){cr.hidden=!hh;document.getElementById('cityChk').checked=!!SAVE.cityStart;const hr=document.getElementById('harbRow');if(hr){hr.hidden=!hh;document.getElementById('harbChk').checked=!!SAVE.harbStart}}
      const fr=document.getElementById('freeRow');if(fr){fr.hidden=!hh;document.getElementById('freeChk').checked=SAVE.freeFlight!==false;
        const tl=toSel.closest('label');if(tl)tl.style.display=hh&&SAVE.freeFlight!==false?'none':''}}
     {const db=document.getElementById('dropBtn');if(db)db.hidden=!AC.fire;const tb=document.getElementById('troopBtn');if(tb){tb.hidden=!hh;tb.textContent=AC.fire?'👨‍🚒':(AC.light?'🧑‍⚕️':'🪖')}}document.getElementById('stewBtn').hidden=j||hh;document.getElementById('rollBtn').hidden=!j;document.getElementById('loopBtn').hidden=!j;
@@ -1818,7 +1819,7 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
     menu.hidden=true;updateBtn();updateAP();render();
     const stops=legs.length>2?` mit Tankstopp in ${legs.slice(1,-1).map(i=>AP[i][0]).join(' und ')}`:'';
     announce(`Guten Tag, meine Damen und Herren. Hier spricht Ihr Kapitän. Willkommen an Bord unseres ${AC.name} von ${AP[from][0]} nach ${AP[fin][0]}${stops}. Die erste Etappe nach ${AP[leg][0]} ist ${Math.round(g.d)} Kilometer lang, die Flugzeit etwa ${sayHM(g.d/820+0.3)}. Bitte schnallen Sie sich an.`);
-    S.free=free;S.water=AC.fire?1:0;S.fire=null;S.padOn=null;S.gnd=0;if(AC.heli&&SAVE.cityStart)setTimeout(cityStart,60);
+    S.free=free;S.water=AC.fire?1:0;S.fire=null;S.padOn=null;S.gnd=0;if(AC.heli&&SAVE.harbStart)setTimeout(harbStart,60);else if(AC.heli&&SAVE.cityStart)setTimeout(cityStart,60);
     if(S.fuel<legNeed(g.d))setTimeout(()=>say('Bitte vor dem Start noch tanken. Dafür auf die Tankanzeige tippen.','de-DE'),11000);
   });
   const apBtn=document.getElementById('apBtn'),sndBtn=document.getElementById('sndBtn');
@@ -2838,7 +2839,7 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
   }
   function drawMapCity(c,T){
     if(S.from==null)return;
-    if(MV.w<400)HARB.forEach(h=>{if(!h)return;const q=T(h.dock[0],h.dock[1]);c.fillStyle='#1f78d1';c.strokeStyle='#fff';c.lineWidth=2;c.beginPath();c.arc(q[0],q[1],10,0,7);c.fill();c.stroke();
+    if(MV.w<1500)HARB.forEach(h=>{if(!h)return;const q=T(h.dock[0],h.dock[1]);c.fillStyle='#1f78d1';c.strokeStyle='#fff';c.lineWidth=2;c.beginPath();c.arc(q[0],q[1],10,0,7);c.fill();c.stroke();
       c.font='12px sans-serif';c.textAlign='center';c.textBaseline='middle';c.fillStyle='#fff';c.fillText('⚓',q[0],q[1]+1);
       if(MV.w<150){c.font='700 11px B612, sans-serif';c.textAlign='left';c.shadowColor='#000';c.shadowBlur=3;c.fillText(h.name,q[0]+13,q[1]);c.shadowBlur=0}});
     if(S.boat){const B=S.boat;
@@ -2886,6 +2887,17 @@ const REAL_ISL=[-7609,16823,21,-5652,-6870,3,-5651,-6871,4,-5507,-3458,10,-5503,
   }
   document.getElementById('freeChk').addEventListener('change',e=>{SAVE.freeFlight=e.target.checked;store();jetUI();plan()});
   document.getElementById('cityChk').addEventListener('change',e=>{SAVE.cityStart=e.target.checked;store()});
+  document.getElementById('harbChk').addEventListener('change',e=>{SAVE.harbStart=e.target.checked;if(e.target.checked){SAVE.cityStart=false;document.getElementById('cityChk').checked=false}store()});
+  document.getElementById('cityChk').addEventListener('change',e=>{if(e.target.checked){SAVE.harbStart=false;document.getElementById('harbChk').checked=false;store()}});
+  // start parked on the nearest harbor pad, boat waiting
+  function harbStart(){
+    updatePads();for(let i=0;i<8;i++)updateHarbors();
+    const L=[...HARB.values()].filter(Boolean).map(h=>({h,d:Math.hypot(h.x-S.px,h.y-S.py)})).sort((a,b)=>a.d-b.d);
+    if(!L.length){showSub('<b>Co-Pilot:</b> Hier gibt es keinen Hafen in der Nähe – wähle einen Flughafen an der Küste, z.&nbsp;B. <b>Faro</b>, <b>Lissabon</b> oder <b>Porto</b>.');return}
+    const p=L[0].h;
+    S.camX+=(p.x-S.px)*1000;S.camZ+=(p.y-S.py)*1000;S.px=p.x;S.py=p.y;S.gnd=p.h;S.alt=p.h;S.padOn=p;S.offApt=true;S.mode='parked';S.atStand=false;updateBtn();
+    VIEW='ext';ORB.yaw=2.4;ORB.el=0.35;ORB.zoom=1.6;
+    showSub(`<b>Co-Pilot:</b> Wir stehen am <b>${p.name}</b>. Unten rechts der blaue <b>🚤-Knopf</b>: ins Speedboot steigen! Weitere Häfen sind auf der Karte mit <b>⚓</b> markiert.`)}
   document.getElementById('dropBtn').addEventListener('click',()=>{initAudio();
     if(!AC.fire)return;
     if(S.water<0.98&&S.mode==='fly'&&S.overW&&!(S.fire&&Math.hypot(S.fire.x-S.px,S.fire.y-S.py)<0.3&&S.water>0.05)){
